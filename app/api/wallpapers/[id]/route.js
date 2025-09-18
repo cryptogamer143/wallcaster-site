@@ -5,7 +5,7 @@ export async function GET(req, { params }) {
   const { id } = params;
 
   try {
-    // 🔹 Fetch wallpapers
+    // Fetch wallpapers
     const res = await fetch("https://api.imagekit.io/v1/files?limit=200", {
       headers: {
         Authorization: `Basic ${Buffer.from(
@@ -16,17 +16,30 @@ export async function GET(req, { params }) {
     });
 
     if (!res.ok) {
-      console.error("ImageKit API error:", res.status, res.statusText);
+      const errorText = await res.text();
+      console.error("❌ ImageKit API error:", res.status, errorText);
       return NextResponse.json(
-        { error: "Failed to fetch wallpapers" },
+        { error: "Failed to fetch wallpapers", details: errorText },
         { status: res.status }
       );
     }
 
     const files = await res.json();
 
-    // 🔹 Find requested wallpaper
-    const wall = files.find((file) => file.fileId === id);
+    // Normalize wallpapers
+    const wallpapers = Array.isArray(files)
+      ? files.map((file) => ({
+          fileId: file.fileId,
+          name: file.name,
+          url: file.url,
+          width: file.width,
+          height: file.height,
+          tags: file.tags || [],
+        }))
+      : [];
+
+    // Find target wallpaper
+    const wall = wallpapers.find((file) => file.fileId === id);
     if (!wall) {
       return NextResponse.json(
         { error: "Wallpaper not found" },
@@ -34,45 +47,37 @@ export async function GET(req, { params }) {
       );
     }
 
-    // 🔹 Find related wallpapers
+    // Find related wallpapers
     let related = [];
-    if (wall.tags && wall.tags.length > 0) {
-      related = files.filter(
+    if (wall.tags.length > 0) {
+      related = wallpapers.filter(
         (f) =>
           f.fileId !== wall.fileId &&
-          f.tags?.some((tag) => wall.tags.includes(tag))
+          f.tags.some((tag) => wall.tags.includes(tag))
       );
     } else {
       const keyword = wall.name?.split(" ")[0]?.toLowerCase() || "";
-      related = files.filter(
+      related = wallpapers.filter(
         (f) =>
           f.fileId !== wall.fileId &&
           f.name?.toLowerCase().includes(keyword)
       );
     }
 
-    // 🔹 Normalize related wallpapers
-    const relatedWallpapers = related.slice(0, 12).map((file) => ({
-      fileId: file.fileId,
-      name: file.name,
-      url: file.url,
-      width: file.width,
-      height: file.height,
-      tags: file.tags || [],
-    }));
-
-    // 🔹 Return result
+    // Return wallpaper + related (normalized)
     return NextResponse.json({
-      fileId: wall.fileId,
-      name: wall.name,
-      url: wall.url,
-      width: wall.width,
-      height: wall.height,
-      tags: wall.tags || [],
-      related: relatedWallpapers,
+      ...wall,
+      related: related.slice(0, 12).map((file) => ({
+        fileId: file.fileId,
+        name: file.name,
+        url: file.url,
+        width: file.width,
+        height: file.height,
+        tags: file.tags || [],
+      })),
     });
   } catch (error) {
-    console.error("Error fetching wallpaper:", error);
+    console.error("🔥 Server error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

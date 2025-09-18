@@ -5,18 +5,24 @@ export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
 
+    // 🔹 Pagination
     const limit = searchParams.get("limit") || "50";
     const skip = searchParams.get("skip") || "0";
+    const searchQuery = searchParams.get("q") || "";
 
-    const apiUrl = `https://api.imagekit.io/v1/files?limit=${limit}&skip=${skip}`;
+    // 🔹 Build API URL
+    let apiUrl = `https://api.imagekit.io/v1/files?limit=${limit}&skip=${skip}`;
+    if (searchQuery) {
+      apiUrl += `&searchQuery=${encodeURIComponent(
+        JSON.stringify({ name: searchQuery })
+      )}`;
+    }
 
-    // 🔹 Explicitly log key details
+    // 🔹 Auth
     const key = process.env.IMAGEKIT_PRIVATE_KEY || "";
-    console.log("🔑 [ENV RAW] ->", JSON.stringify(key));
-    console.log("🔑 [ENV LENGTH] ->", key.length);
     const base64 = Buffer.from(`${key}:`).toString("base64");
-    console.log("🔑 [BASE64] ->", base64);
 
+    // 🔹 Fetch
     const res = await fetch(apiUrl, {
       headers: {
         Authorization: `Basic ${base64}`,
@@ -34,7 +40,25 @@ export async function GET(req) {
     }
 
     const data = await res.json();
-    return NextResponse.json(data);
+
+    // 🔹 Normalize response to wallpapers[]
+    const wallpapers = Array.isArray(data)
+      ? data.map((file) => ({
+          fileId: file.fileId,
+          name: file.name,
+          url: file.url,
+          width: file.width,
+          height: file.height,
+          tags: file.tags || [],
+        }))
+      : [];
+
+    return NextResponse.json({
+      files: wallpapers,
+      count: wallpapers.length,
+      skip: Number(skip),
+      limit: Number(limit),
+    });
   } catch (error) {
     console.error("🔥 Server error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
