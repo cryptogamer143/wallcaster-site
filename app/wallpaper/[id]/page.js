@@ -4,16 +4,15 @@ import { useParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import useSWR from "swr";
 import Link from "next/link";
-import { Search } from "lucide-react";
 
 // 🔹 Fetcher
-const fetcher = (url) => fetch(url).then((res) => res.json());
+const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function WallpaperPage() {
   const params = useParams();
-  const id = params?.id;
+  const id = params?.id as string;
 
-  const [countdown, setCountdown] = useState(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
   const [ready, setReady] = useState(false);
   const [adBlockDetected, setAdBlockDetected] = useState(false);
 
@@ -32,7 +31,7 @@ export default function WallpaperPage() {
       if (!bait || bait.offsetHeight === 0 || bait.offsetParent === null) {
         setAdBlockDetected(true);
       }
-      if (bait.parentNode) bait.parentNode.removeChild(bait);
+      bait.remove();
     }, 800);
   }, []);
 
@@ -43,6 +42,7 @@ export default function WallpaperPage() {
       </p>
     );
   }
+
   if (!data) {
     return (
       <p className="text-gray-600 text-center mt-10">
@@ -51,8 +51,8 @@ export default function WallpaperPage() {
     );
   }
 
-  const wall = data;
-  const related = data.related || [];
+  // ✅ Split wallpaper + related
+  const { related = [], ...wall } = data;
 
   // ✅ Start Ad + Countdown + Download
   const startAdThenDownload = () => {
@@ -64,6 +64,7 @@ export default function WallpaperPage() {
     setReady(false);
     setCountdown(10);
 
+    // Try triggering ad popup
     try {
       const fakeClick = document.createElement("a");
       fakeClick.href = "#";
@@ -143,7 +144,7 @@ export default function WallpaperPage() {
             Related Wallpapers
           </h2>
           <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-            {related.map((r) => (
+            {related.map((r: any) => (
               <Link
                 key={r.fileId}
                 href={`/wallpaper/${r.fileId}`}

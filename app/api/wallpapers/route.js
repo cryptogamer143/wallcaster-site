@@ -5,7 +5,7 @@ export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
 
-    // 🔹 Pagination params
+    // 🔹 Pagination
     const limit = searchParams.get("limit") || "50";
     const skip = searchParams.get("skip") || "0";
 
@@ -13,37 +13,29 @@ export async function GET(req) {
     const apiUrl = `https://api.imagekit.io/v1/files?limit=${limit}&skip=${skip}`;
 
     // 🔹 Auth header
-    const authHeader = `Basic ${Buffer.from(
-      `${process.env.IMAGEKIT_PRIVATE_KEY || ""}:`
-    ).toString("base64")}`;
+    const key = process.env.IMAGEKIT_PRIVATE_KEY || "";
+    const authHeader = `Basic ${Buffer.from(`${key}:`).toString("base64")}`;
 
-    console.log("🔑 IMAGEKIT_PRIVATE_KEY (last 4 chars):", process.env.IMAGEKIT_PRIVATE_KEY?.slice(-4));
-
-    // 🔹 Fetch from ImageKit
+    // 🔹 Fetch wallpapers
     const res = await fetch(apiUrl, {
       headers: { Authorization: authHeader },
-      cache: "no-store", // disable caching
+      cache: "no-store",
     });
 
     if (!res.ok) {
       const errText = await res.text();
-      console.error("❌ ImageKit API error:", res.status, res.statusText, errText);
-
+      console.error("❌ ImageKit API error:", res.status, errText);
       return NextResponse.json(
-        {
-          error: "Failed to fetch wallpapers",
-          status: res.status,
-          details: errText,
-        },
+        { error: "Failed to fetch wallpapers", details: errText },
         { status: res.status }
       );
     }
 
-    const data = await res.json();
+    const files = await res.json();
 
     // 🔹 Normalize wallpapers
-    const wallpapers = Array.isArray(data)
-      ? data.map((file) => ({
+    const wallpapers = Array.isArray(files)
+      ? files.map((file) => ({
           fileId: file.fileId,
           name: file.name,
           url: file.url,
@@ -53,7 +45,7 @@ export async function GET(req) {
         }))
       : [];
 
-    // 🔹 Return response
+    // 🔹 Return paginated response
     return NextResponse.json({
       files: wallpapers,
       count: wallpapers.length,
@@ -61,7 +53,7 @@ export async function GET(req) {
       limit: Number(limit),
     });
   } catch (error) {
-    console.error("⚠️ Error fetching from ImageKit:", error);
+    console.error("🔥 Server error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

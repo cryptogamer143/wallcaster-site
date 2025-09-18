@@ -5,7 +5,7 @@ export async function GET(req, { params }) {
   const { id } = params;
 
   try {
-    // Fetch wallpapers
+    // 🔹 Fetch wallpapers from ImageKit
     const res = await fetch("https://api.imagekit.io/v1/files?limit=200", {
       headers: {
         Authorization: `Basic ${Buffer.from(
@@ -26,7 +26,7 @@ export async function GET(req, { params }) {
 
     const files = await res.json();
 
-    // Normalize wallpapers
+    // ✅ Normalize wallpapers
     const wallpapers = Array.isArray(files)
       ? files.map((file) => ({
           fileId: file.fileId,
@@ -38,8 +38,8 @@ export async function GET(req, { params }) {
         }))
       : [];
 
-    // Find target wallpaper
-    const wall = wallpapers.find((file) => file.fileId === id);
+    // 🔹 Find the requested wallpaper
+    const wall = wallpapers.find((f) => f.fileId === id);
     if (!wall) {
       return NextResponse.json(
         { error: "Wallpaper not found" },
@@ -47,7 +47,7 @@ export async function GET(req, { params }) {
       );
     }
 
-    // Find related wallpapers
+    // 🔹 Find related wallpapers
     let related = [];
     if (wall.tags.length > 0) {
       related = wallpapers.filter(
@@ -64,17 +64,10 @@ export async function GET(req, { params }) {
       );
     }
 
-    // Return wallpaper + related (normalized)
+    // ✅ Always return { ...wall, related }
     return NextResponse.json({
       ...wall,
-      related: related.slice(0, 12).map((file) => ({
-        fileId: file.fileId,
-        name: file.name,
-        url: file.url,
-        width: file.width,
-        height: file.height,
-        tags: file.tags || [],
-      })),
+      related: related.slice(0, 12), // only top 12 related wallpapers
     });
   } catch (error) {
     console.error("🔥 Server error:", error);

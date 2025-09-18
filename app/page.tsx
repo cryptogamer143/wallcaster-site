@@ -31,12 +31,12 @@ const fetcher = async (url: string): Promise<WallpapersResponse> => {
   return res.json();
 };
 
-// 🔹 Key generator
+// 🔹 Key generator → now points to /api/wallpapers
 const getKey =
   (query: string) =>
   (pageIndex: number, previousPageData: WallpapersResponse | null) => {
     if (previousPageData && previousPageData.files.length === 0) return null;
-    return `/api/list-wallpapers?limit=20&skip=${
+    return `/api/wallpapers?limit=20&skip=${
       pageIndex * 20
     }&q=${encodeURIComponent(query)}`;
   };
