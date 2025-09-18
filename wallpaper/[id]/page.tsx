@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import wallpapers from "../../../data/wallpapers.json";
+import wallpapers from "@/data/wallpapers.json";
 import Script from "next/script";
 import { useState } from "react";
 
@@ -13,7 +13,7 @@ export default function WallpaperPage() {
   const [countdown, setCountdown] = useState<number | null>(null);
   const [ready, setReady] = useState(false);
 
-  if (!wall) return <p>Not found</p>;
+  if (!wall) return <p className="p-6">Not found</p>;
 
   const startAdThenDownload = () => {
     setReady(false);
@@ -41,6 +41,8 @@ export default function WallpaperPage() {
 
   return (
     <div className="flex flex-col items-center gap-6 p-6">
+      <h2 className="text-2xl font-semibold">{wall.title}</h2>
+
       <img
         src={wall.url}
         alt={wall.title}
@@ -71,7 +73,7 @@ export default function WallpaperPage() {
       <Script
         id="propeller-page"
         strategy="afterInteractive"
-        src="https://YOUR-ZONE-TAG-HERE.js"
+        src="https://YOUR-PROPELLERADS-TAG.js"
       />
     </div>
   );

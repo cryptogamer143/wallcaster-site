@@ -1,22 +1,12 @@
 [
   {
     "id": 1,
-    "title": "4K AI Mountain",
+    "title": "AI Mountain",
     "url": "https://raw.githubusercontent.com/cryptogamer143/wallpapers/main/4k-ai-mountain.jpg"
   },
   {
     "id": 2,
     "title": "Cyberpunk City",
     "url": "https://raw.githubusercontent.com/cryptogamer143/wallpapers/main/cyberpunk-city.jpg"
-  },
-  {
-    "id": 3,
-    "title": "Neon Streets",
-    "url": "https://raw.githubusercontent.com/cryptogamer143/wallpapers/main/neon-streets.jpg"
-  },
-  {
-    "id": 4,
-    "title": "Futuristic Landscape",
-    "url": "https://raw.githubusercontent.com/cryptogamer143/wallpapers/main/futuristic-landscape.jpg"
   }
 ]
