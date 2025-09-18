@@ -1,19 +1,19 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import wallpapers from "@/data/wallpapers.json";
 import Script from "next/script";
+import wallpapers from "../../data/wallpapers.json";
 import { useState } from "react";
 
 export default function WallpaperPage() {
   const params = useParams();
   const id = Number(params?.id);
-  const wall = (wallpapers as any[]).find((w) => w.id === id);
+  const wall = wallpapers.find((w) => w.id === id);
 
-  const [countdown, setCountdown] = useState<number | null>(null);
+  const [countdown, setCountdown] = useState(null);
   const [ready, setReady] = useState(false);
 
-  if (!wall) return <p className="p-6">Not found</p>;
+  if (!wall) return <p>Not found</p>;
 
   const startAdThenDownload = () => {
     setReady(false);
@@ -26,7 +26,7 @@ export default function WallpaperPage() {
           clearInterval(timer);
           setReady(true);
 
-          // Trigger download
+          // trigger download
           const link = document.createElement("a");
           link.href = wall.url;
           link.download = `${wall.title}.jpg`;
@@ -41,8 +41,6 @@ export default function WallpaperPage() {
 
   return (
     <div className="flex flex-col items-center gap-6 p-6">
-      <h2 className="text-2xl font-semibold">{wall.title}</h2>
-
       <img
         src={wall.url}
         alt={wall.title}
@@ -52,7 +50,6 @@ export default function WallpaperPage() {
       {!ready && (
         <>
           <div className="w-full max-w-lg bg-gray-100 p-4 rounded">
-            {/* PropellerAds Banner Zone */}
             <div id="ad-slot" className="h-24 flex items-center justify-center">
               <p>Ad loading...</p>
             </div>
@@ -69,11 +66,10 @@ export default function WallpaperPage() {
         </>
       )}
 
-      {/* Load PropellerAds Script */}
       <Script
         id="propeller-page"
         strategy="afterInteractive"
-        src="https://YOUR-PROPELLERADS-TAG.js"
+        src="https://YOUR-PROPELLERADS-LINK.js"
       />
     </div>
   );

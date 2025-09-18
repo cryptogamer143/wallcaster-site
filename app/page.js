@@ -1,5 +1,5 @@
 import Link from "next/link";
-import wallpapers from "@/data/wallpapers.json";
+import wallpapers from "../data/wallpapers.json";
 
 export default function Home() {
   return (
@@ -11,7 +11,7 @@ export default function Home() {
             <img
               src={w.url}
               alt={w.title}
-              className="rounded-lg shadow-sm object-cover h-40 w-full hover:scale-105 transition"
+              className="rounded-lg shadow-sm object-cover h-40 w-full"
             />
           </Link>
         ))}
