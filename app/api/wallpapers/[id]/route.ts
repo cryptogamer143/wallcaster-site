@@ -22,10 +22,10 @@ export async function GET(
       );
     }
 
-    const files = await res.json();
+    const files: any[] = await res.json();
 
-    // ✅ Find the wallpaper by fileId
-    const wall = files.find((file: any) => file.fileId === id);
+    // ✅ Find wallpaper by fileId
+    const wall = files.find((file) => file.fileId === id);
 
     if (!wall) {
       return NextResponse.json(
@@ -34,11 +34,13 @@ export async function GET(
       );
     }
 
-    // ✅ Return only what frontend needs
+    // ✅ Return simplified wallpaper
     return NextResponse.json({
       fileId: wall.fileId,
       name: wall.name,
       url: wall.url,
+      width: wall.width,
+      height: wall.height,
     });
   } catch (error) {
     console.error("Error fetching wallpaper:", error);

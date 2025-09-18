@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-export async function GET(req: Request) {
+export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
     const limit = searchParams.get("limit") || "50";
@@ -26,8 +26,8 @@ export async function GET(req: Request) {
 
     const data = await res.json();
 
-    // Simplify response
-    const wallpapers = data.map((file: any) => ({
+    // ✅ Simplify response
+    const wallpapers = data.map((file) => ({
       fileId: file.fileId,
       name: file.name,
       url: file.url,
