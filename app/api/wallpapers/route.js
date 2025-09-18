@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Buffer } from "buffer";
 
 export async function GET(req) {
   try {
@@ -11,7 +12,7 @@ export async function GET(req) {
       {
         headers: {
           Authorization: `Basic ${Buffer.from(
-            process.env.IMAGEKIT_PRIVATE_KEY + ":"
+            (process.env.IMAGEKIT_PRIVATE_KEY || "") + ":"
           ).toString("base64")}`,
         },
       }
@@ -26,12 +27,14 @@ export async function GET(req) {
 
     const data = await res.json();
 
-    // ✅ Simplify response
-    const wallpapers = data.map((file) => ({
-      fileId: file.fileId,
-      name: file.name,
-      url: file.url,
-    }));
+    // ✅ Ensure it's an array
+    const wallpapers = Array.isArray(data)
+      ? data.map((file) => ({
+          fileId: file.fileId,
+          name: file.name,
+          url: file.url,
+        }))
+      : [];
 
     return NextResponse.json({
       files: wallpapers,

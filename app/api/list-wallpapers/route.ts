@@ -32,10 +32,10 @@ export async function GET(request: Request) {
       );
     }
 
-    const data = await res.json();
+    const data: any[] = await res.json();
 
     // 🔹 Simplify response
-    const wallpapers = data.map((file: any) => ({
+    const wallpapers = data.map((file) => ({
       fileId: file.fileId,
       name: file.name,
       url: file.url,
