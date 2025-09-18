@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { Buffer } from "buffer";
 
 export async function GET(req) {
- {
   try {
     const { searchParams } = new URL(req.url);
 
