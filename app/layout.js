@@ -1,23 +1,69 @@
-import Script from "next/script";
 import "./globals.css";
+import Script from "next/script";
+import { useEffect, useState } from "react";
 
 export const metadata = {
   title: "Wallcaster",
-  description: "Free Aesthetic Wallpapers with Ads Support",
+  description: "Free Aesthetic Wallpapers with Ads",
 };
 
 export default function RootLayout({ children }) {
+  const [adBlockDetected, setAdBlockDetected] = useState(false);
+
+  // ✅ Detect AdBlock globally
+  useEffect(() => {
+    const bait = document.createElement("div");
+    bait.className = "adsbox";
+    bait.style.position = "absolute";
+    bait.style.left = "-999px";
+    document.body.appendChild(bait);
+
+    setTimeout(() => {
+      if (!bait || bait.offsetParent === null || bait.offsetHeight === 0) {
+        setAdBlockDetected(true);
+      }
+      document.body.removeChild(bait);
+    }, 1000);
+  }, []);
+
   return (
     <html lang="en">
       <head>
-        {/* Insert ad script */}
+        {/* Global Ad Script */}
         <Script
-          id="propeller"
+          id="propeller-global"
           strategy="afterInteractive"
-          src="https://YOUR-PROPELLERADS-LINK.js"
+          src="https://fpyf8.com/88/tag.min.js"
+          data-zone="171814"
+          data-cfasync="false"
         />
       </head>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        {/* 🚫 Global AdBlock Warning */}
+        {adBlockDetected && (
+          <div className="w-full bg-red-100 text-center p-4 shadow">
+            <p className="text-red-600 font-bold">
+              ⚠️ AdBlock or Brave Shields detected. Please disable it to use Wallcaster.
+            </p>
+          </div>
+        )}
+
+        {/* ✅ Global Banner (ads only if no AdBlock) */}
+        {!adBlockDetected && (
+          <div className="w-full bg-gray-100 p-4 text-center shadow">
+            <p className="text-sm text-gray-600">Advertisement</p>
+            <div
+              id="ad-slot-global"
+              className="h-20 flex items-center justify-center border border-dashed border-gray-400 rounded"
+            >
+              <p className="text-xs text-gray-400">Ad will load here…</p>
+            </div>
+          </div>
+        )}
+
+        {/* ✅ Page Content */}
+        <main>{children}</main>
+      </body>
     </html>
   );
 }
