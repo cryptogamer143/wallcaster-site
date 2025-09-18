@@ -18,12 +18,14 @@ export async function GET(req) {
       )}`;
     }
 
-    console.log("🔑 Using private key:", process.env.IMAGEKIT_PRIVATE_KEY ? "Loaded" : "MISSING");
+    // ✅ Log to verify private key is loaded
+    console.log("🔑 Private key exists:", !!process.env.IMAGEKIT_PRIVATE_KEY);
 
+    // ✅ Fetch from ImageKit API
     const res = await fetch(apiUrl, {
       headers: {
         Authorization: `Basic ${Buffer.from(
-          `${process.env.IMAGEKIT_PRIVATE_KEY || ""}:`
+          `${process.env.IMAGEKIT_PRIVATE_KEY}:`
         ).toString("base64")}`,
       },
       cache: "no-store",

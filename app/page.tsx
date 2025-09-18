@@ -6,6 +6,7 @@ import Script from "next/script";
 import useSWRInfinite from "swr/infinite";
 import { ChevronUp, Search } from "lucide-react";
 
+// 🔹 Types
 interface Wallpaper {
   fileId: string;
   name: string;
@@ -22,8 +23,13 @@ interface WallpapersResponse {
 }
 
 // 🔹 Fetcher
-const fetcher = (url: string): Promise<WallpapersResponse> =>
-  fetch(url).then((res) => res.json());
+const fetcher = async (url: string): Promise<WallpapersResponse> => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`Failed to fetch: ${res.status}`);
+  }
+  return res.json();
+};
 
 // 🔹 Key generator
 const getKey =
@@ -47,7 +53,7 @@ export default function Home() {
 
   // ✅ Flatten paginated data safely
   const allFiles: Wallpaper[] = Array.isArray(data)
-    ? data.flatMap((p) => p?.files || [])
+    ? data.flatMap((p) => p?.files ?? [])
     : [];
 
   // ✅ Safe reachedEnd check
@@ -83,8 +89,8 @@ export default function Home() {
   // ✅ Search handler
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    setSize(1);
-    setSearch(query);
+    setSize(1); // reset pagination
+    setSearch(query.trim());
     mutate();
   };
 
@@ -154,8 +160,9 @@ export default function Home() {
             <p className="absolute bottom-2 left-2 text-xs bg-black/60 text-white px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition">
               {w.name}
             </p>
+            {/* Ad block every 12th item */}
             {(i + 1) % 12 === 0 && (
-              <div className="break-inside-avoid bg-gray-100 rounded-lg h-32 border border-dashed border-gray-400 flex items-center justify-center mt-4">
+              <div className="break-inside-avoid bg-gray-100 rounded-lg h-32 border border-dashed border-gray-400 flex items-center justify-center mt-4 relative">
                 <p className="absolute top-1 left-2 text-xs text-gray-400">
                   Sponsored
                 </p>
