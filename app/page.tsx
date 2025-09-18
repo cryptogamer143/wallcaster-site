@@ -30,7 +30,7 @@ const fetcher = (url: string): Promise<WallpapersResponse> =>
 const getKey =
   (query: string) =>
   (pageIndex: number, previousPageData: WallpapersResponse | null) => {
-    if (previousPageData && !previousPageData.files.length) return null;
+    if (previousPageData && !previousPageData.files.length) return null; // stop if no more
     return `/api/list-wallpapers?limit=20&skip=${
       pageIndex * 20
     }&q=${encodeURIComponent(query)}`;
@@ -100,7 +100,10 @@ export default function Home() {
 
   // ✅ Flatten paginated data
   const allFiles: Wallpaper[] = data ? data.flatMap((p) => p.files) : [];
-  const reachedEnd = data && data[data.length - 1]?.files.length === 0;
+
+  // ✅ Safe check for end of list
+  const reachedEnd =
+    !data || data.length === 0 || data[data.length - 1]?.files.length === 0;
 
   // ✅ Search handler
   const handleSearch = (e: React.FormEvent) => {
@@ -116,6 +119,7 @@ export default function Home() {
         ⚠️ Failed to load wallpapers.
       </p>
     );
+
   if (!data)
     return (
       <div className="p-6">
