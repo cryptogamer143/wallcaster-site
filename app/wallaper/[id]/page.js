@@ -13,7 +13,7 @@ export default function WallpaperPage() {
   const [countdown, setCountdown] = useState(null);
   const [ready, setReady] = useState(false);
 
-  if (!wall) return <p>Not found</p>;
+  if (!wall) return <p>Wallpaper not found</p>;
 
   const startAdThenDownload = () => {
     setReady(false);
@@ -69,7 +69,7 @@ export default function WallpaperPage() {
       <Script
         id="propeller-page"
         strategy="afterInteractive"
-        src="https://YOUR-ZONE-TAG-HERE.js"
+        src="https://YOUR-ZONE-TAG.js"
       />
     </div>
   );
