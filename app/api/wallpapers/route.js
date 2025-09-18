@@ -4,35 +4,43 @@ import { Buffer } from "buffer";
 export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
-    const limit = searchParams.get("limit") || "50";
-    const skip = searchParams.get("skip") || "0"; // pagination offset
 
-    const res = await fetch(
-      `https://api.imagekit.io/v1/files?limit=${limit}&skip=${skip}`,
-      {
-        headers: {
-          Authorization: `Basic ${Buffer.from(
-            (process.env.IMAGEKIT_PRIVATE_KEY || "") + ":"
-          ).toString("base64")}`,
-        },
-      }
-    );
+    // 🔹 Pagination
+    const limit = searchParams.get("limit") || "50";
+    const skip = searchParams.get("skip") || "0";
+
+    // 🔹 Build ImageKit API URL
+    const apiUrl = `https://api.imagekit.io/v1/files?limit=${limit}&skip=${skip}`;
+
+    // 🔹 Fetch from ImageKit
+    const res = await fetch(apiUrl, {
+      headers: {
+        Authorization: `Basic ${Buffer.from(
+          `${process.env.IMAGEKIT_PRIVATE_KEY || ""}:`
+        ).toString("base64")}`,
+      },
+      cache: "no-store", // prevent Vercel edge caching
+    });
 
     if (!res.ok) {
+      console.error("ImageKit API error:", res.status, res.statusText);
       return NextResponse.json(
         { error: "Failed to fetch wallpapers" },
-        { status: 500 }
+        { status: res.status }
       );
     }
 
     const data = await res.json();
 
-    // ✅ Ensure it's an array
+    // 🔹 Normalize response
     const wallpapers = Array.isArray(data)
       ? data.map((file) => ({
           fileId: file.fileId,
           name: file.name,
           url: file.url,
+          width: file.width,
+          height: file.height,
+          tags: file.tags || [],
         }))
       : [];
 

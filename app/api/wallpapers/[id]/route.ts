@@ -7,17 +7,18 @@ export async function GET(
   const { id } = params;
 
   try {
-    // 🔹 Fetch all wallpapers (increase limit if needed)
+    // 🔹 Fetch all wallpapers (raise limit if you expect many)
     const res = await fetch("https://api.imagekit.io/v1/files?limit=200", {
       headers: {
         Authorization: `Basic ${Buffer.from(
-          process.env.IMAGEKIT_PRIVATE_KEY + ":"
+          `${process.env.IMAGEKIT_PRIVATE_KEY || ""}:`
         ).toString("base64")}`,
       },
       cache: "no-store",
     });
 
     if (!res.ok) {
+      console.error("ImageKit API error:", res.status, res.statusText);
       return NextResponse.json(
         { error: "Failed to fetch wallpapers" },
         { status: res.status }
@@ -26,7 +27,7 @@ export async function GET(
 
     const files: any[] = await res.json();
 
-    // 🔹 Find the requested wallpaper by fileId
+    // 🔹 Find the requested wallpaper
     const wall = files.find((file) => file.fileId === id);
 
     if (!wall) {
@@ -36,7 +37,7 @@ export async function GET(
       );
     }
 
-    // 🔹 Find related wallpapers (first by tags, fallback to name)
+    // 🔹 Find related wallpapers (prefer tags, fallback to name prefix)
     let related: any[] = [];
     if (wall.tags && wall.tags.length > 0) {
       related = files.filter(
@@ -45,17 +46,16 @@ export async function GET(
           f.tags?.some((tag: string) => wall.tags.includes(tag))
       );
     } else {
+      const keyword = wall.name?.split(" ")[0]?.toLowerCase() || "";
       related = files.filter(
         (f) =>
           f.fileId !== wall.fileId &&
-          f.name
-            ?.toLowerCase()
-            .includes(wall.name?.toLowerCase().split(" ")[0] || "")
+          f.name?.toLowerCase().includes(keyword)
       );
     }
 
-    // 🔹 Limit related wallpapers (max 12)
-    related = related.slice(0, 12).map((file) => ({
+    // 🔹 Trim & normalize related wallpapers
+    const relatedWallpapers = related.slice(0, 12).map((file) => ({
       fileId: file.fileId,
       name: file.name,
       url: file.url,
@@ -72,7 +72,7 @@ export async function GET(
       width: wall.width,
       height: wall.height,
       tags: wall.tags || [],
-      related,
+      related: relatedWallpapers,
     });
   } catch (error) {
     console.error("Error fetching wallpaper:", error);

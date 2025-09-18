@@ -1,7 +1,6 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import Script from "next/script";
 import { useState, useEffect } from "react";
 import useSWR from "swr";
 import Link from "next/link";
@@ -38,10 +37,18 @@ export default function WallpaperPage() {
   }, []);
 
   if (error) {
-    return <p className="text-red-600 text-center mt-10">⚠️ Failed to load wallpaper.</p>;
+    return (
+      <p className="text-red-600 text-center mt-10">
+        ⚠️ Failed to load wallpaper.
+      </p>
+    );
   }
   if (!data) {
-    return <p className="text-gray-600 text-center mt-10">⏳ Loading wallpaper…</p>;
+    return (
+      <p className="text-gray-600 text-center mt-10">
+        ⏳ Loading wallpaper…
+      </p>
+    );
   }
 
   const wall = data;
@@ -107,7 +114,8 @@ export default function WallpaperPage() {
       {adBlockDetected && (
         <div className="w-full max-w-lg bg-red-100 p-4 rounded text-center shadow">
           <p className="text-red-600 font-semibold">
-            ⚠️ AdBlock detected. Please disable AdBlock or Brave Shields to download wallpapers.
+            ⚠️ AdBlock detected. Please disable AdBlock or Brave Shields to
+            download wallpapers.
           </p>
         </div>
       )}
@@ -123,13 +131,17 @@ export default function WallpaperPage() {
             : `Please wait... ${countdown}s`}
         </button>
       ) : ready ? (
-        <p className="text-green-600 font-semibold mt-4">✅ Download started!</p>
+        <p className="text-green-600 font-semibold mt-4">
+          ✅ Download started!
+        </p>
       ) : null}
 
       {/* ✅ Related Wallpapers */}
       {related.length > 0 && (
         <div className="w-full mt-12">
-          <h2 className="text-2xl font-bold mb-6 text-center">Related Wallpapers</h2>
+          <h2 className="text-2xl font-bold mb-6 text-center">
+            Related Wallpapers
+          </h2>
           <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
             {related.map((r) => (
               <Link

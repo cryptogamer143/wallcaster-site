@@ -11,8 +11,12 @@ export async function GET(request: Request) {
   try {
     // 🔹 Build ImageKit API URL
     let apiUrl = `https://api.imagekit.io/v1/files?limit=${limit}&skip=${skip}`;
+
+    // Correct: must pass JSON string for searchQuery
     if (searchQuery) {
-      apiUrl += `&searchQuery=${encodeURIComponent(searchQuery)}`;
+      apiUrl += `&searchQuery=${encodeURIComponent(
+        JSON.stringify({ name: searchQuery })
+      )}`;
     }
 
     // 🔹 Fetch from ImageKit API
@@ -32,7 +36,14 @@ export async function GET(request: Request) {
       );
     }
 
-    const data: any[] = await res.json();
+    const data: {
+      fileId: string;
+      name: string;
+      url: string;
+      width: number;
+      height: number;
+      tags?: string[];
+    }[] = await res.json();
 
     // 🔹 Simplify response
     const wallpapers = data.map((file) => ({
@@ -41,7 +52,7 @@ export async function GET(request: Request) {
       url: file.url,
       width: file.width,
       height: file.height,
-      tags: file.tags || [], // include tags if exist
+      tags: file.tags || [],
     }));
 
     return NextResponse.json({
