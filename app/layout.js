@@ -1,26 +1,23 @@
-import type { Metadata } from "next";
 import Script from "next/script";
 import "./globals.css";
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "Wallcaster",
-  description: "Free Aesthetic Wallpapers",
+  description: "Free Aesthetic Wallpapers with Ads Support",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <head />
-      <body className="bg-white text-slate-900">
-        {/* PropellerAds script — REPLACE the src with the exact script provided by PropellerAds */}
+      <head>
+        {/* Insert ad script */}
         <Script
-          id="propellerads"
+          id="propeller"
           strategy="afterInteractive"
           src="https://YOUR-PROPELLERADS-LINK.js"
-          data-cfasync="false"
         />
-        <div className="max-w-6xl mx-auto p-4">{children}</div>
-      </body>
+      </head>
+      <body className="antialiased">{children}</body>
     </html>
   );
 }
