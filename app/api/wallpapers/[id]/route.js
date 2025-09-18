@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 import { Buffer } from "buffer";
 
-export async function GET(req, { params }) {
-  const { id } = params;
-
+export async function GET(req) {
   try {
-    // 🔹 Fetch wallpapers from ImageKit
+    const { pathname } = new URL(req.url);
+    const id = pathname.split("/").pop(); // ✅ extract [id]
+
+    const key = process.env.IMAGEKIT_PRIVATE_KEY || "";
+    const base64 = Buffer.from(`${key}:`).toString("base64");
+
+    // 🔹 Fetch a bigger set (so we can pick related)
     const res = await fetch("https://api.imagekit.io/v1/files?limit=200", {
-      headers: {
-        Authorization: `Basic ${Buffer.from(
-          `${process.env.IMAGEKIT_PRIVATE_KEY || ""}:`
-        ).toString("base64")}`,
-      },
+      headers: { Authorization: `Basic ${base64}` },
       cache: "no-store",
     });
 
@@ -26,7 +26,6 @@ export async function GET(req, { params }) {
 
     const files = await res.json();
 
-    // ✅ Normalize wallpapers
     const wallpapers = Array.isArray(files)
       ? files.map((file) => ({
           fileId: file.fileId,
@@ -38,16 +37,13 @@ export async function GET(req, { params }) {
         }))
       : [];
 
-    // 🔹 Find the requested wallpaper
+    // 🔹 Find requested wallpaper
     const wall = wallpapers.find((f) => f.fileId === id);
     if (!wall) {
-      return NextResponse.json(
-        { error: "Wallpaper not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Wallpaper not found" }, { status: 404 });
     }
 
-    // 🔹 Find related wallpapers
+    // 🔹 Related wallpapers
     let related = [];
     if (wall.tags.length > 0) {
       related = wallpapers.filter(
@@ -64,10 +60,9 @@ export async function GET(req, { params }) {
       );
     }
 
-    // ✅ Always return { ...wall, related }
     return NextResponse.json({
       ...wall,
-      related: related.slice(0, 12), // only top 12 related wallpapers
+      related: related.slice(0, 12),
     });
   } catch (error) {
     console.error("🔥 Server error:", error);

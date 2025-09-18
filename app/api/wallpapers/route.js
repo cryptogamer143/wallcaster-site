@@ -5,20 +5,22 @@ export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
 
-    // 🔹 Pagination
     const limit = searchParams.get("limit") || "50";
     const skip = searchParams.get("skip") || "0";
+    const searchQuery = searchParams.get("q") || "";
 
-    // 🔹 Build ImageKit API URL
-    const apiUrl = `https://api.imagekit.io/v1/files?limit=${limit}&skip=${skip}`;
+    let apiUrl = `https://api.imagekit.io/v1/files?limit=${limit}&skip=${skip}`;
+    if (searchQuery) {
+      apiUrl += `&searchQuery=${encodeURIComponent(
+        JSON.stringify({ name: searchQuery })
+      )}`;
+    }
 
-    // 🔹 Auth header
     const key = process.env.IMAGEKIT_PRIVATE_KEY || "";
-    const authHeader = `Basic ${Buffer.from(`${key}:`).toString("base64")}`;
+    const base64 = Buffer.from(`${key}:`).toString("base64");
 
-    // 🔹 Fetch wallpapers
     const res = await fetch(apiUrl, {
-      headers: { Authorization: authHeader },
+      headers: { Authorization: `Basic ${base64}` },
       cache: "no-store",
     });
 
@@ -31,11 +33,10 @@ export async function GET(req) {
       );
     }
 
-    const files = await res.json();
+    const data = await res.json();
 
-    // 🔹 Normalize wallpapers
-    const wallpapers = Array.isArray(files)
-      ? files.map((file) => ({
+    const wallpapers = Array.isArray(data)
+      ? data.map((file) => ({
           fileId: file.fileId,
           name: file.name,
           url: file.url,
@@ -45,7 +46,6 @@ export async function GET(req) {
         }))
       : [];
 
-    // 🔹 Return paginated response
     return NextResponse.json({
       files: wallpapers,
       count: wallpapers.length,
