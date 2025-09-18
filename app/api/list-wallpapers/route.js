@@ -1,35 +1,25 @@
 import { NextResponse } from "next/server";
 import { Buffer } from "buffer";
 
-export async function GET(req) {
+export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url);
 
-    // 🔹 Pagination
     const limit = searchParams.get("limit") || "50";
     const skip = searchParams.get("skip") || "0";
-    const searchQuery = searchParams.get("q") || "";
 
-    // 🔹 Build API URL
-    let apiUrl = `https://api.imagekit.io/v1/files?limit=${limit}&skip=${skip}`;
-    if (searchQuery) {
-      apiUrl += `&searchQuery=${encodeURIComponent(
-        JSON.stringify({ name: searchQuery })
-      )}`;
-    }
+    const apiUrl = `https://api.imagekit.io/v1/files?limit=${limit}&skip=${skip}`;
 
-    // ✅ Debug: Log env var & base64
+    // 🔹 Explicitly log key details
     const key = process.env.IMAGEKIT_PRIVATE_KEY || "";
-    console.log("🔑 Raw key from env:", JSON.stringify(key)); // show exact chars
-    console.log(
-      "🔑 Base64 encoded:",
-      Buffer.from(`${key}:`).toString("base64")
-    );
+    console.log("🔑 [ENV RAW] ->", JSON.stringify(key));
+    console.log("🔑 [ENV LENGTH] ->", key.length);
+    const base64 = Buffer.from(`${key}:`).toString("base64");
+    console.log("🔑 [BASE64] ->", base64);
 
-    // ✅ Fetch from ImageKit API
     const res = await fetch(apiUrl, {
       headers: {
-        Authorization: `Basic ${Buffer.from(`${key}:`).toString("base64")}`,
+        Authorization: `Basic ${base64}`,
       },
       cache: "no-store",
     });
@@ -44,24 +34,7 @@ export async function GET(req) {
     }
 
     const data = await res.json();
-
-    const wallpapers = Array.isArray(data)
-      ? data.map((file) => ({
-          fileId: file.fileId,
-          name: file.name,
-          url: file.url,
-          width: file.width,
-          height: file.height,
-          tags: file.tags || [],
-        }))
-      : [];
-
-    return NextResponse.json({
-      files: wallpapers,
-      count: wallpapers.length,
-      skip: Number(skip),
-      limit: Number(limit),
-    });
+    return NextResponse.json(data);
   } catch (error) {
     console.error("🔥 Server error:", error);
     return NextResponse.json({ error: "Server error" }, { status: 500 });
