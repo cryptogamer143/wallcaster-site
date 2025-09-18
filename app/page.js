@@ -6,24 +6,8 @@ import Script from "next/script";
 import useSWRInfinite from "swr/infinite";
 import { ChevronUp, Search } from "lucide-react";
 
-// 🔹 Types
-interface Wallpaper {
-  fileId: string;
-  name: string;
-  url: string;
-  width?: number;
-  height?: number;
-}
-
-interface WallpapersResponse {
-  files: Wallpaper[];
-  count: number;
-  skip: number;
-  limit: number;
-}
-
 // 🔹 Fetcher
-const fetcher = async (url: string): Promise<WallpapersResponse> => {
+const fetcher = async (url) => {
   const res = await fetch(url);
   if (!res.ok) {
     throw new Error(`Failed to fetch: ${res.status}`);
@@ -32,27 +16,25 @@ const fetcher = async (url: string): Promise<WallpapersResponse> => {
 };
 
 // 🔹 Key generator → now points to /api/wallpapers
-const getKey =
-  (query: string) =>
-  (pageIndex: number, previousPageData: WallpapersResponse | null) => {
-    if (previousPageData && previousPageData.files.length === 0) return null;
-    return `/api/wallpapers?limit=20&skip=${
-      pageIndex * 20
-    }&q=${encodeURIComponent(query)}`;
-  };
+const getKey = (query) => (pageIndex, previousPageData) => {
+  if (previousPageData && previousPageData.files.length === 0) return null;
+  return `/api/wallpapers?limit=20&skip=${
+    pageIndex * 20
+  }&q=${encodeURIComponent(query)}`;
+};
 
 export default function Home() {
   const [query, setQuery] = useState("");
   const [search, setSearch] = useState("");
 
   const { data, error, size, setSize, isValidating, mutate } =
-    useSWRInfinite<WallpapersResponse>(getKey(search), fetcher);
+    useSWRInfinite(getKey(search), fetcher);
 
-  const loaderRef = useRef<HTMLDivElement | null>(null);
+  const loaderRef = useRef(null);
   const [showTop, setShowTop] = useState(false);
 
   // ✅ Flatten paginated data safely
-  const allFiles: Wallpaper[] = Array.isArray(data)
+  const allFiles = Array.isArray(data)
     ? data.flatMap((p) => p?.files ?? [])
     : [];
 
@@ -87,7 +69,7 @@ export default function Home() {
   }, []);
 
   // ✅ Search handler
-  const handleSearch = (e: React.FormEvent) => {
+  const handleSearch = (e) => {
     e.preventDefault();
     setSize(1); // reset pagination
     setSearch(query.trim());

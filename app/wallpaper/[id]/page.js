@@ -6,13 +6,13 @@ import useSWR from "swr";
 import Link from "next/link";
 
 // 🔹 Fetcher
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = (url) => fetch(url).then((res) => res.json());
 
 export default function WallpaperPage() {
   const params = useParams();
-  const id = params?.id as string;
+  const id = params?.id;
 
-  const [countdown, setCountdown] = useState<number | null>(null);
+  const [countdown, setCountdown] = useState(null);
   const [ready, setReady] = useState(false);
   const [adBlockDetected, setAdBlockDetected] = useState(false);
 
@@ -144,7 +144,7 @@ export default function WallpaperPage() {
             Related Wallpapers
           </h2>
           <div className="columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-            {related.map((r: any) => (
+            {related.map((r) => (
               <Link
                 key={r.fileId}
                 href={`/wallpaper/${r.fileId}`}
