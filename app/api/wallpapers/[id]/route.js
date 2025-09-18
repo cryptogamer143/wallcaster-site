@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
+import { Buffer } from "buffer";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(req, { params }) {
   const { id } = params;
 
   try {
-    // 🔹 Fetch all wallpapers (raise limit if you expect many)
+    // 🔹 Fetch wallpapers
     const res = await fetch("https://api.imagekit.io/v1/files?limit=200", {
       headers: {
         Authorization: `Basic ${Buffer.from(
@@ -25,11 +23,10 @@ export async function GET(
       );
     }
 
-    const files: any[] = await res.json();
+    const files = await res.json();
 
-    // 🔹 Find the requested wallpaper
+    // 🔹 Find requested wallpaper
     const wall = files.find((file) => file.fileId === id);
-
     if (!wall) {
       return NextResponse.json(
         { error: "Wallpaper not found" },
@@ -37,13 +34,13 @@ export async function GET(
       );
     }
 
-    // 🔹 Find related wallpapers (prefer tags, fallback to name prefix)
-    let related: any[] = [];
+    // 🔹 Find related wallpapers
+    let related = [];
     if (wall.tags && wall.tags.length > 0) {
       related = files.filter(
         (f) =>
           f.fileId !== wall.fileId &&
-          f.tags?.some((tag: string) => wall.tags.includes(tag))
+          f.tags?.some((tag) => wall.tags.includes(tag))
       );
     } else {
       const keyword = wall.name?.split(" ")[0]?.toLowerCase() || "";
@@ -54,7 +51,7 @@ export async function GET(
       );
     }
 
-    // 🔹 Trim & normalize related wallpapers
+    // 🔹 Normalize related wallpapers
     const relatedWallpapers = related.slice(0, 12).map((file) => ({
       fileId: file.fileId,
       name: file.name,
@@ -64,7 +61,7 @@ export async function GET(
       tags: file.tags || [],
     }));
 
-    // 🔹 Return current wallpaper + related wallpapers
+    // 🔹 Return result
     return NextResponse.json({
       fileId: wall.fileId,
       name: wall.name,

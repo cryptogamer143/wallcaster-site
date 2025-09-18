@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { Buffer } from "buffer";
 
-export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
 
   // 🔹 Query params
   const limit = searchParams.get("limit") || "50";
@@ -12,7 +14,7 @@ export async function GET(request: Request) {
     // 🔹 Build ImageKit API URL
     let apiUrl = `https://api.imagekit.io/v1/files?limit=${limit}&skip=${skip}`;
 
-    // Correct: must pass JSON string for searchQuery
+    // 🔹 Must use JSON string for searchQuery
     if (searchQuery) {
       apiUrl += `&searchQuery=${encodeURIComponent(
         JSON.stringify({ name: searchQuery })
@@ -23,7 +25,7 @@ export async function GET(request: Request) {
     const res = await fetch(apiUrl, {
       headers: {
         Authorization: `Basic ${Buffer.from(
-          process.env.IMAGEKIT_PRIVATE_KEY + ":"
+          `${process.env.IMAGEKIT_PRIVATE_KEY || ""}:`
         ).toString("base64")}`,
       },
       cache: "no-store", // always fresh
@@ -45,7 +47,7 @@ export async function GET(request: Request) {
       tags?: string[];
     }[] = await res.json();
 
-    // 🔹 Simplify response
+    // 🔹 Normalize response
     const wallpapers = data.map((file) => ({
       fileId: file.fileId,
       name: file.name,

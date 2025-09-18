@@ -5,7 +5,7 @@ export async function GET(req) {
   try {
     const { searchParams } = new URL(req.url);
 
-    // 🔹 Pagination
+    // 🔹 Pagination params
     const limit = searchParams.get("limit") || "50";
     const skip = searchParams.get("skip") || "0";
 
@@ -19,7 +19,7 @@ export async function GET(req) {
           `${process.env.IMAGEKIT_PRIVATE_KEY || ""}:`
         ).toString("base64")}`,
       },
-      cache: "no-store", // prevent Vercel edge caching
+      cache: "no-store", // disable caching
     });
 
     if (!res.ok) {
@@ -32,7 +32,7 @@ export async function GET(req) {
 
     const data = await res.json();
 
-    // 🔹 Normalize response
+    // 🔹 Normalize wallpapers
     const wallpapers = Array.isArray(data)
       ? data.map((file) => ({
           fileId: file.fileId,
@@ -44,6 +44,7 @@ export async function GET(req) {
         }))
       : [];
 
+    // 🔹 Return response
     return NextResponse.json({
       files: wallpapers,
       count: wallpapers.length,
