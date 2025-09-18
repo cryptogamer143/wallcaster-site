@@ -18,15 +18,18 @@ export async function GET(req) {
       )}`;
     }
 
-    // ✅ Log to verify private key is loaded
-    console.log("🔑 Private key exists:", !!process.env.IMAGEKIT_PRIVATE_KEY);
+    // ✅ Debug: Log env var & base64
+    const key = process.env.IMAGEKIT_PRIVATE_KEY || "";
+    console.log("🔑 Raw key from env:", JSON.stringify(key)); // show exact chars
+    console.log(
+      "🔑 Base64 encoded:",
+      Buffer.from(`${key}:`).toString("base64")
+    );
 
     // ✅ Fetch from ImageKit API
     const res = await fetch(apiUrl, {
       headers: {
-        Authorization: `Basic ${Buffer.from(
-          `${process.env.IMAGEKIT_PRIVATE_KEY}:`
-        ).toString("base64")}`,
+        Authorization: `Basic ${Buffer.from(`${key}:`).toString("base64")}`,
       },
       cache: "no-store",
     });
